@@ -175,9 +175,14 @@ summary{cursor:pointer;padding:10px 0;color:var(--mu)}
 
 <dialog id="db">
 <b>نسخة احتياطية</b>
-<p class="info">البيانات محفوظة في هذا المتصفح فقط. انسخ النص واحفظه في مكان آمن، أو الصقه هنا ثم اضغط استعادة.</p>
-<textarea id="bt" rows="8"></textarea>
-<div class="row"><button id="cp">نسخ</button><button id="im">استعادة</button><button id="c3">إغلاق</button></div>
+<p class="info">احفظ ملف PDF يحتوي كل قروضك ودفعاتك بشكل مقروء ويمكن طباعته. وفي الملف نفسه نسخة من البيانات تستعيدها بها عند الحاجة.</p>
+<button class="mb p" id="bp">⬇ تنزيل نسخة PDF</button>
+<label class="mb" for="bf" style="text-align:center;margin-top:0;color:var(--tx);border:1px solid var(--bd);border-radius:8px;background:var(--card);cursor:pointer">📂 استعادة من ملف PDF</label>
+<input type="file" id="bf" accept=".pdf,.json,application/pdf,application/json" hidden>
+<details><summary>نسخ نصي (بديل)</summary>
+<textarea id="bt" rows="6"></textarea>
+<div class="row"><button id="cp">نسخ</button><button id="im">استعادة</button></div></details>
+<div class="row"><button id="c3">إغلاق</button></div>
 </dialog>
 
 <dialog id="ds"><b id="st">جدول السداد</b><div class="info" id="sn"></div><div id="sb"></div><div class="row"><button id="sx">إغلاق</button></div></dialog>
@@ -580,6 +585,115 @@ function showProfile(l){
   $('#dpf').showModal();
 }
 $('#pfx').onclick=()=>$('#dpf').close();
+/* ===== نسخة احتياطية PDF: صفحات مرسومة بالمتصفح (تدعم العربية) + نسخة البيانات مرفقة داخل الملف ===== */
+const FONT='"IBM Plex Sans Arabic",Tahoma,Arial,sans-serif';
+const stT=(l,c)=>l.closed?['مغلق بتنازل','#5d6b82']:c.done?['مسدَّد','#15803d']:c.ended?['انتهت المدة','#b91c1c']:c.on>0?['متأخر '+c.on+' دفعة','#b91c1c']:c.arr>0.005?['فائدة ناقصة','#b45309']:['منتظم','#15803d'];
+
+function buildPdf(jpgs,json,W,H){
+  const enc=new TextEncoder(),parts=[],offs=[];let pos=0;
+  const add=x=>{const u=typeof x==='string'?enc.encode(x):x;parts.push(u);pos+=u.length};
+  const obj=(id,body)=>{offs[id]=pos;add(id+' 0 obj\n'+body+'\nendobj\n')};
+  const n=jpgs.length,kids=[];
+  for(let i=0;i<n;i++)kids.push((7+i*3)+' 0 R');
+  add('%PDF-1.7\n%\u00e2\u00e3\u00cf\u00d3\n');
+  obj(1,'<< /Type /Catalog /Pages 2 0 R /Names << /EmbeddedFiles << /Names [(loan-book-data.json) 3 0 R] >> >> >>');
+  obj(2,'<< /Type /Pages /Kids ['+kids.join(' ')+'] /Count '+n+' >>');
+  obj(3,'<< /Type /Filespec /F (loan-book-data.json) /UF (loan-book-data.json) /EF << /F 4 0 R >> /AFRelationship /Data >>');
+  const jb=enc.encode(json);
+  offs[4]=pos;add('4 0 obj\n<< /Type /EmbeddedFile /Subtype /application#2Fjson /Length '+jb.length+' >>\nstream\n');add(jb);add('\nendstream\nendobj\n');
+  jpgs.forEach((j,i)=>{
+    const im=5+i*3,ct=6+i*3,pg=7+i*3,c='q 595 0 0 842 0 0 cm /Im0 Do Q';
+    offs[im]=pos;add(im+' 0 obj\n<< /Type /XObject /Subtype /Image /Width '+W+' /Height '+H+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+j.length+' >>\nstream\n');add(j);add('\nendstream\nendobj\n');
+    obj(ct,'<< /Length '+c.length+' >>\nstream\n'+c+'\nendstream');
+    obj(pg,'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /XObject << /Im0 '+im+' 0 R >> >> /Contents '+ct+' 0 R >>');
+  });
+  const xr=pos;
+  add('xref\n0 '+offs.length+'\n0000000000 65535 f \n');
+  for(let i=1;i<offs.length;i++)add(String(offs[i]).padStart(10,'0')+' 00000 n \n');
+  add('trailer\n<< /Size '+offs.length+' /Root 1 0 R >>\nstartxref\n'+xr+'\n%%EOF');
+  return new Blob(parts,{type:'application/pdf'});
+}
+
+async function makePdf(){
+  try{if(document.fonts&&document.fonts.load){await document.fonts.load('700 30px "IBM Plex Sans Arabic"');await document.fonts.load('400 30px "IBM Plex Sans Arabic"')}}catch(e){}
+  const W=1240,H=1754,M=80,pages=[];
+  let x,y;
+  const np=()=>{const cv=document.createElement('canvas');cv.width=W;cv.height=H;x=cv.getContext('2d');x.fillStyle='#ffffff';x.fillRect(0,0,W,H);x.direction='rtl';pages.push({cv:cv,x:x});y=M};
+  const need=h=>{if(y+h>H-M-30)np()};
+  const txt=(t,px,col,bold,align,xx)=>{x.font=(bold?'700 ':'400 ')+px+'px '+FONT;x.fillStyle=col;x.textAlign=align||'right';x.fillText(t,xx==null?W-M:xx,y+px)};
+  const fit=(t,px,maxW,bold)=>{x.font=(bold?'700 ':'400 ')+px+'px '+FONT;t=String(t);if(x.measureText(t).width<=maxW)return t;while(t.length>1&&x.measureText(t+'…').width>maxW)t=t.slice(0,-1);return t+'…'};
+  const all=loans.map(l=>({l:l,c:calc(l)})),act=all.filter(o=>!o.c.done),late=act.filter(o=>isLate(o.c));
+
+  np();
+  x.fillStyle='#14213d';x.fillRect(0,0,W,170);
+  y=34;txt('دفتر القروض',56,'#ffffff',true);
+  txt(today(),30,'#c9d3e6',false,'left',M);
+  y=104;txt('نسخة احتياطية كاملة',28,'#e0b45a',false);
+  y=210;
+  const box=[['الأصل القائم',money(act.reduce((a,o)=>a+o.c.bal,0))],['فوائد محصّلة',money(sum(loans,intPaid))],['قروض جارية',String(act.length)],['متأخرة',String(late.length)]];
+  const bw=(W-2*M-60)/4;
+  box.forEach((b,i)=>{
+    const bx=W-M-(i+1)*bw-i*20;
+    x.fillStyle='#eef2f7';x.fillRect(bx,y,bw,120);
+    x.textAlign='center';x.font='400 24px '+FONT;x.fillStyle='#5d6b82';x.fillText(b[0],bx+bw/2,y+42);
+    const v=fit(b[1],30,bw-20,true);x.font='700 30px '+FONT;x.fillStyle='#14213d';x.textAlign='center';x.fillText(v,bx+bw/2,y+90);
+  });
+  y+=160;
+  if(!loans.length){txt('لا توجد قروض مسجلة',30,'#5d6b82',false)}
+
+  all.forEach(o=>{
+    const l=o.l,c=o.c,s=stT(l,c);
+    need(360);
+    x.fillStyle='#d5dde7';x.fillRect(M,y,W-2*M,2);y+=18;
+    txt(fit(l.name,38,720,true),38,'#14213d',true);txt(s[0],30,s[1],true,'left',M);y+=62;
+    const sub=[l.phone,(l.mode==='inst'?'أقساط':l.mode==='end'?'دفعة واحدة في النهاية':'فائدة فقط والأصل ثابت')+(l.unit==='w'?' أسبوعيا':''),l.cat,l.guar?'الضامن: '+l.guar:''].filter(Boolean).join(' | ');
+    txt(fit(sub,24,W-2*M,false),24,'#5d6b82',false);y+=40;
+    const kv=[['مبلغ القرض',money(l.principal)],['الفائدة السنوية',l.rate+'%'],['بداية القرض',l.start],['نهاية القرض',endD(l)],['الأصل المتبقي',money(c.bal)],['الدفعة القادمة',c.done?'-':money(c.ended?c.bal:c.nextI+c.nextP)+' ('+(c.ended?endD(l):c.nextD)+')'],['فوائد محصّلة',money(intPaid(l))],['أصل مسدَّد',money(paidPr(l))]];
+    const cw=(W-2*M)/2;
+    for(let i=0;i<kv.length;i+=2){
+      need(44);
+      [0,1].forEach(k=>{const it=kv[i+k];if(!it)return;txt(it[0]+': '+fit(it[1],26,cw-230,true),26,'#14213d',false,'right',W-M-k*cw)});
+      y+=42;
+    }
+    if(!c.done&&(isLate(c)||c.arr>0.005)){need(44);txt('إجمالي المتأخرات: '+money(lateAmt(c)),26,'#b91c1c',true);y+=42}
+    if(l.note){need(40);txt(fit('ملاحظات: '+l.note,24,W-2*M,false),24,'#5d6b82',false);y+=38}
+    y+=6;need(44);txt('الدفعات ('+l.pays.length+')',26,'#14213d',true);y+=40;
+    if(!l.pays.length){need(38);txt('لا توجد دفعات مسجلة',24,'#5d6b82',false);y+=38}
+    l.pays.forEach(p=>{need(38);txt(fit(p.d+(p.x?' (إضافي)':'')+'   |   فائدة '+fmt(p.int)+'   |   أصل '+fmt(p.pr)+(p.n?'   |   '+p.n:''),24,W-2*M,false),24,'#2b3a55',false);y+=36});
+    y+=22;
+  });
+  pages.forEach((pg,i)=>{pg.x.direction='rtl';pg.x.font='400 22px '+FONT;pg.x.fillStyle='#8a97ad';pg.x.textAlign='center';pg.x.fillText('دفتر القروض | صفحة '+(i+1)+' من '+pages.length+' | يحتوي هذا الملف نسخة بيانات قابلة للاستعادة داخل البرنامج',W/2,H-40)});
+  const jpgs=pages.map(pg=>{const b=atob(pg.cv.toDataURL('image/jpeg',0.82).split(',')[1]);const u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u});
+  return buildPdf(jpgs,JSON.stringify({loanbook:1,exported:today(),currency:curr,loans:loans}),W,H);
+}
+
+function dl(blob,name){
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000);
+}
+async function readBackup(file){
+  const txt=new TextDecoder('utf-8').decode(await file.arrayBuffer());
+  const i=txt.indexOf('{"loanbook":1');
+  if(i<0){try{return JSON.parse(txt)}catch(e){return null}}
+  const j=txt.indexOf('\nendstream',i);
+  try{return JSON.parse(txt.slice(i,j<0?txt.length:j))}catch(e){return null}
+}
+$('#bp').onclick=async()=>{
+  try{toast('جارٍ تجهيز الملف...');dl(await makePdf(),'loan-book-'+today()+'.pdf');toast('تم تجهيز النسخة، تحقق من التنزيلات')}
+  catch(e){toast('تعذر إنشاء ملف PDF')}
+};
+$('#bf').onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  const d=await readBackup(f);e.target.value='';
+  const arr=Array.isArray(d)?d:(d&&Array.isArray(d.loans)?d.loans:null),cl=arr?clean(arr):null;
+  if(!cl){toast('الملف غير صالح أو لا يحتوي بيانات البرنامج');return}
+  ask('استبدال كل البيانات الحالية ('+loans.length+' قرض) بالنسخة من الملف ('+cl.length+' قرض)؟',()=>{
+    loans=cl;
+    if(!Array.isArray(d)&&typeof d.currency==='string'){curr=d.currency;try{localStorage.setItem(CK,curr)}catch(x){}$('#cur').value=curr}
+    save();render();$('#db').close();toast('تمت الاستعادة');
+  });
+};
 if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})}
 render();
 </script>
