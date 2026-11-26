@@ -137,7 +137,7 @@ summary{cursor:pointer;padding:10px 0;color:var(--mu)}
 <div class="mb2"><span>العملة</span><select id="cur"><option value="">بدون</option><option>جنيه</option><option>ريال</option><option>درهم</option><option>دينار</option><option>دولار</option></select></div>
 <p class="nt">بياناتك محفوظة في متصفح هذا الجهاز فقط. خذ نسخة احتياطية من وقت لآخر.</p>
 <p class="nt">القفل بالرقم السري يمنع الاطلاع العرضي ولا يشفّر البيانات.</p>
-<p class="nt">الإصدار 3.0</p>
+<p class="nt">الإصدار 3.1</p>
 </section>
 </main>
 <nav id="nav">
@@ -160,7 +160,10 @@ summary{cursor:pointer;padding:10px 0;color:var(--mu)}
 <b id="lt">قرض جديد</b>
 <label>اسم المقترض</label><input name="name" required>
 <label>مبلغ القرض</label><input name="principal" type="number" step="any" min="0.01" required>
-<label>الفائدة السنوية %</label><input name="rate" type="number" step="any" min="0" required>
+<label>نسبة الفائدة %</label><input name="rate" type="number" step="any" min="0" required>
+<label>تُحتسب هذه النسبة لكل كم شهرا؟</label><input name="rp" type="number" step="1" min="1" max="120" value="12" required>
+<div class="chips" id="rpq"><button type="button" data-r="1">شهرية</button><button type="button" data-r="3">كل 3 أشهر</button><button type="button" data-r="6">كل 6 أشهر</button><button type="button" data-r="12">سنوية</button></div>
+<div class="nt" id="rph"></div>
 <label>نوع السداد</label>
 <select name="mode"><option value="int">فائدة فقط والأصل ثابت</option><option value="inst">أقساط من الأصل مع الفائدة</option><option value="end">دفعة واحدة في النهاية (الأصل وكل الفوائد)</option></select>
 <label>وحدة الدفعات</label><select name="unit"><option value="m">شهرية</option><option value="w">أسبوعية</option></select>
@@ -215,7 +218,10 @@ summary{cursor:pointer;padding:10px 0;color:var(--mu)}
 <dialog id="dk"><form id="kf">
 <b>حاسبة قبل الإقراض</b>
 <label>مبلغ القرض</label><input name="principal" type="number" step="any" min="0.01">
-<label>الفائدة السنوية %</label><input name="rate" type="number" step="any" min="0">
+<label>نسبة الفائدة %</label><input name="rate" type="number" step="any" min="0">
+<label>تُحتسب هذه النسبة لكل كم شهرا؟</label><input name="rp" type="number" step="1" min="1" max="120" value="12">
+<div class="chips" id="krpq"><button type="button" data-r="1">شهرية</button><button type="button" data-r="3">كل 3 أشهر</button><button type="button" data-r="6">كل 6 أشهر</button><button type="button" data-r="12">سنوية</button></div>
+<div class="nt" id="krph"></div>
 <label>وحدة الدفعات</label><select name="unit"><option value="m">شهرية</option><option value="w">أسبوعية</option></select>
 <label id="kml">مدة القرض بالأشهر</label><input name="months" type="number" step="1" min="1" max="600">
 <label>نوع السداد</label><select name="mode"><option value="int">فائدة فقط والأصل ثابت</option><option value="inst">أقساط من الأصل مع الفائدة</option><option value="end">دفعة واحدة في النهاية</option></select>
@@ -264,7 +270,7 @@ function clean(d){
   const n=x=>Number.isFinite(+x)?+x:0,out=[];
   for(const l of d){
     if(!l||typeof l!=='object')return null;
-    out.push({id:Number.isFinite(+l.id)&&l.id?+l.id:Date.now()+out.length,name:String(l.name||''),phone:String(l.phone||''),note:String(l.note||''),principal:n(l.principal),rate:n(l.rate),start:/^\d{4}-\d{2}-\d{2}$/.test(l.start)?l.start:today(),mode:l.mode==='inst'||l.mode==='end'?l.mode:'int',months:Math.max(0,Math.floor(n(l.months))),unit:l.unit==='w'?'w':'m',step:Math.max(1,Math.floor(n(l.step))||1),red:!!l.red,guar:String(l.guar||''),cat:String(l.cat||''),closed:!!l.closed,pays:(Array.isArray(l.pays)?l.pays:[]).map(p=>({d:String((p&&p.d)||''),int:n(p&&p.int),pr:n(p&&p.pr),x:!!(p&&p.x),n:String((p&&p.n)||'')}))});
+    out.push({id:Number.isFinite(+l.id)&&l.id?+l.id:Date.now()+out.length,name:String(l.name||''),phone:String(l.phone||''),note:String(l.note||''),principal:n(l.principal),rate:n(l.rate),rp:Math.min(120,Math.max(1,Math.floor(n(l.rp))||12)),start:/^\d{4}-\d{2}-\d{2}$/.test(l.start)?l.start:today(),mode:l.mode==='inst'||l.mode==='end'?l.mode:'int',months:Math.max(0,Math.floor(n(l.months))),unit:l.unit==='w'?'w':'m',step:Math.max(1,Math.floor(n(l.step))||1),red:!!l.red,guar:String(l.guar||''),cat:String(l.cat||''),closed:!!l.closed,pays:(Array.isArray(l.pays)?l.pays:[]).map(p=>({d:String((p&&p.d)||''),int:n(p&&p.int),pr:n(p&&p.pr),x:!!(p&&p.x),n:String((p&&p.n)||'')}))});
   }
   return out;
 }
@@ -280,13 +286,16 @@ const rem=l=>r2(l.principal-paidPr(l));
 const endD=l=>l.months?iso(addU(l,l.months)):'-';
 const sum=(a,f)=>a.reduce((s,l)=>s+f(l),0);
 
-/* محرك الحساب: الفائدة السنوية / 12 على أصل القرض الأصلي، فالفائدة الشهرية ثابتة ولا تتغير بالسداد.
+/* محرك الحساب: الفائدة الشهرية = النسبة ÷ عدد أشهر النسبة (12 للسنوية، 1 للشهرية، أو أي عدد) على أصل القرض الأصلي، فهي ثابتة ولا تتغير بالسداد.
    كل دفعة عادية تسوّي فترة بالترتيب، والفرق بين المطلوب والمدفوع من الفائدة يُسجَّل كمتأخرات (arr).
    الدفعات الإضافية (x) تخفّض الأصل ولا تستهلك فترة. */
+const rpOf=l=>l.rp>0?l.rp:12;
+const fx=v=>+Number(v).toFixed(3);
+const rateTxt=l=>{const n=rpOf(l);return l.rate+'% '+(n===12?'سنويا':n===1?'شهريا':n===2?'كل شهرين':n<=10?'كل '+n+' أشهر':'كل '+n+' شهرا')};
 const stepOf=l=>l.mode==='end'?Math.max(1,l.months):Math.max(1,l.step||1);
 const periods=l=>l.months>0?Math.max(1,Math.ceil(l.months/stepOf(l))):0;
 function calc(l){
-  const P=periods(l),st=stepOf(l),M=l.months||0,mr=l.rate/(l.unit==='w'?5200:1200),t=today();
+  const P=periods(l),st=stepOf(l),M=l.months||0,mr=l.rate/(100*rpOf(l))*(l.unit==='w'?12/52:1),t=today();
   const dm=j=>M?Math.min(j*st,M):j*st;
   const dd=j=>iso(addU(l,dm(j)));
   const ip=(base,j)=>r2(base*mr*(dm(j)-dm(j-1)));
@@ -355,7 +364,7 @@ function card(o){
    '<div class="btns">'+(c.done?'':'<button class="p" data-a="qpay"'+id+'>سدّد المستحق</button><button data-a="pay"'+id+'>دفعة مخصصة</button>')+'<button class="s" data-a="more"'+id+'>'+(ex?'إخفاء ▴':'المزيد ▾')+'</button></div>';
   if(ex){
     h+='<div class="g">'+
-    '<div><span>فائدة الدفعة ('+l.rate+'% سنويا)</span><b>'+(c.done?'-':money(c.nextI))+'</b></div>'+
+    '<div><span>فائدة الدفعة ('+rateTxt(l)+')</span><b>'+(c.done?'-':money(c.nextI))+'</b></div>'+
     '<div><span>الدفعات</span><b>'+c.k+' من '+(c.P||'-')+'</b></div>'+
     '<div><span>بداية القرض</span><b>'+esc(l.start)+'</b></div>'+
     '<div><span>نهاية القرض</span><b>'+endD(l)+'</b></div>'+
@@ -409,14 +418,14 @@ function openLoan(l){
   $('#lt').textContent=l?'تعديل القرض':'قرض جديد';
   if(l){['name','phone','principal','rate','start','months','mode','note'].forEach(k=>{E(f,k).value=l[k]})}
   else E(f,'start').value=today();
-  E(f,'unit').value=l?(l.unit||'m'):'m';fillUnit(l?(l.step||1):1);E(f,'red').value=l&&l.red?'1':'0';E(f,'guar').value=l?(l.guar||''):'';E(f,'cat').value=l?(l.cat||''):'';$('#adv').open=!!(l&&(l.step>1||l.red||l.guar||l.cat||l.note));
+  E(f,'unit').value=l?(l.unit||'m'):'m';fillUnit(l?(l.step||1):1);E(f,'red').value=l&&l.red?'1':'0';E(f,'guar').value=l?(l.guar||''):'';E(f,'cat').value=l?(l.cat||''):'';E(f,'rp').value=l?rpOf(l):12;updLf();$('#adv').open=!!(l&&(l.step>1||l.red||l.guar||l.cat||l.note));
   $('#dl').showModal();
 }
 $('#add').onclick=()=>openLoan(null);
 $('#c1').onclick=()=>$('#dl').close();
 $('#lf').onsubmit=e=>{
   e.preventDefault();const f=e.target;
-  const o={name:E(f,'name').value.trim(),phone:E(f,'phone').value.trim(),note:E(f,'note').value.trim(),principal:+E(f,'principal').value,rate:+E(f,'rate').value,start:E(f,'start').value,mode:E(f,'mode').value,months:Math.floor(+E(f,'months').value),unit:E(f,'unit').value,step:+E(f,'step').value||1,red:E(f,'red').value==='1',guar:E(f,'guar').value.trim(),cat:E(f,'cat').value};
+  const o={name:E(f,'name').value.trim(),phone:E(f,'phone').value.trim(),note:E(f,'note').value.trim(),principal:+E(f,'principal').value,rate:+E(f,'rate').value,rp:Math.min(120,Math.max(1,Math.floor(+E(f,'rp').value)||12)),start:E(f,'start').value,mode:E(f,'mode').value,months:Math.floor(+E(f,'months').value),unit:E(f,'unit').value,step:+E(f,'step').value||1,red:E(f,'red').value==='1',guar:E(f,'guar').value.trim(),cat:E(f,'cat').value};
   if(o.mode==='end')o.step=Math.max(1,o.months);
   if(!o.name||!(o.principal>0)||!(o.rate>=0)||!(o.months>=1)||!o.start){toast('راجع الحقول: المبلغ والمدة يجب أن يكونا أكبر من صفر');return}
   if(editId!==null){
@@ -470,14 +479,14 @@ const onAct=e=>{
   else if(a==='reopen'){l.closed=false;save();render()}
   else if(a==='stmt'){
     const c=calc(l);
-    const ls=['كشف حساب قرض '+l.name,'مبلغ القرض: '+money(l.principal),'الفائدة: '+l.rate+'% سنويا','بداية القرض: '+l.start+' ونهايته: '+endD(l),'الدفعات المسجلة:'].concat(l.pays.length?l.pays.map(p=>p.d+' - فائدة '+fmt(p.int)+' / أصل '+fmt(p.pr)+(p.n?' ('+p.n+')':'')):['لا توجد']).concat(['الأصل المتبقي: '+money(c.bal)]).concat(isLate(c)||c.arr>0.005?['إجمالي المتأخرات: '+money(lateAmt(c))]:[]);
+    const ls=['كشف حساب قرض '+l.name,'مبلغ القرض: '+money(l.principal),'الفائدة: '+rateTxt(l),'بداية القرض: '+l.start+' ونهايته: '+endD(l),'الدفعات المسجلة:'].concat(l.pays.length?l.pays.map(p=>p.d+' - فائدة '+fmt(p.int)+' / أصل '+fmt(p.pr)+(p.n?' ('+p.n+')':'')):['لا توجد']).concat(['الأصل المتبقي: '+money(c.bal)]).concat(isLate(c)||c.arr>0.005?['إجمالي المتأخرات: '+money(lateAmt(c))]:[]);
     $('#rtt').textContent='كشف حساب';$('#rt').value=ls.join('\n');$('#dr').showModal();
   }
   else if(a==='prof')showProfile(l);
   else if(a==='sch'){
     const c=calc(l);
     $('#st').textContent='جدول سداد '+l.name;
-    $('#sn').textContent='الفائدة '+l.rate+'% سنويا = '+(l.unit==='w'?r2(l.rate/52)+'% أسبوعيا ':r2(l.rate/12)+'% شهريا ')+(l.red?'على الأصل المتبقي':'على أصل القرض، وهي ثابتة')+'. الأخضر مسجَّل، والأحمر متأخر، وغير الملوَّن قادم.';
+    $('#sn').textContent='الفائدة '+rateTxt(l)+' = '+(l.unit==='w'?fx(l.rate/rpOf(l)*12/52)+'% أسبوعيا ':fx(l.rate/rpOf(l))+'% شهريا ')+(l.red?'على الأصل المتبقي':'على أصل القرض، وهي ثابتة')+'. الأخضر مسجَّل، والأحمر متأخر، وغير الملوَّن قادم.';
     let h='<div class="sr h"><span>الدفعة</span><span>الاستحقاق</span><span>فائدة</span><span>أصل</span></div>';
     c.rows.forEach(r=>{h+=r.x?'<div class="sr o"><span>إضافي</span><span>'+esc(r.d)+'</span><span>'+fmt(r.i)+'</span><span>'+fmt(r.p)+'</span></div>':'<div class="sr o"><span>'+r.k+'</span><span>'+r.due+'</span><span>'+fmt(r.i)+(r.i<r.si-0.005?' (من '+fmt(r.si)+')':'')+'</span><span>'+fmt(r.p)+'</span></div>'});
     c.proj.forEach(r=>{h+='<div class="sr'+(r.late?' l':'')+'"><span>'+r.k+'</span><span>'+r.due+'</span><span>'+fmt(r.si)+'</span><span>'+fmt(r.sp)+'</span></div>'});
@@ -566,7 +575,7 @@ $('#nav').onclick=e=>{const b=e.target.closest('button[data-v]');if(b)setView(b.
 
 /* حاسبة قبل الإقراض: تستخدم نفس محرك الحساب بدون حفظ */
 function runK(){
-  const f=$('#kf'),o={id:0,principal:+E(f,'principal').value,rate:+E(f,'rate').value,months:Math.floor(+E(f,'months').value),unit:E(f,'unit').value,mode:E(f,'mode').value,step:+E(f,'step').value||1,red:E(f,'red').value==='1',start:today(),pays:[]};
+  const f=$('#kf'),o={id:0,principal:+E(f,'principal').value,rate:+E(f,'rate').value,rp:Math.min(120,Math.max(1,Math.floor(+E(f,'rp').value)||12)),months:Math.floor(+E(f,'months').value),unit:E(f,'unit').value,mode:E(f,'mode').value,step:+E(f,'step').value||1,red:E(f,'red').value==='1',start:today(),pays:[]};
   if(o.mode==='end')o.step=Math.max(1,o.months);
   if(!(o.principal>0)||!(o.rate>=0)||!(o.months>=1)||o.months>600){$('#kr').innerHTML='<div class="info">أدخل المبلغ والفائدة والمدة (حتى 600).</div>';return null}
   const c=calc(o),ti=c.proj.reduce((a,r)=>a+r.si,0);
@@ -574,7 +583,7 @@ function runK(){
   h+='<div class="sr h"><span>الدفعة</span><span>الاستحقاق</span><span>فائدة</span><span>أصل</span></div>'+c.proj.map(r=>'<div class="sr"><span>'+r.k+'</span><span>'+r.due+'</span><span>'+fmt(r.si)+'</span><span>'+fmt(r.sp)+'</span></div>').join('');
   $('#kr').innerHTML=h;return o;
 }
-$('#kb').onclick=()=>{$('#kf').reset();fillUnit(1,1);$('#kr').innerHTML='';$('#dk').showModal()};
+$('#kb').onclick=()=>{$('#kf').reset();fillUnit(1,1);updK();$('#kr').innerHTML='';$('#dk').showModal()};
 $('#kf').onsubmit=e=>e.preventDefault();
 $('#kf').addEventListener('input',runK);
 $('#kf').addEventListener('change',runK);
@@ -583,7 +592,7 @@ $('#kx').onclick=()=>$('#dk').close();
 $('#ks').onclick=()=>{
   const o=runK();if(!o)return;
   $('#dk').close();openLoan(null);const f=$('#lf');
-  E(f,'principal').value=o.principal;E(f,'rate').value=o.rate;E(f,'months').value=o.months;E(f,'mode').value=o.mode;E(f,'unit').value=o.unit;fillUnit(o.step);E(f,'red').value=o.red?'1':'0';
+  E(f,'principal').value=o.principal;E(f,'rate').value=o.rate;E(f,'rp').value=o.rp;E(f,'months').value=o.months;E(f,'mode').value=o.mode;E(f,'unit').value=o.unit;fillUnit(o.step);E(f,'red').value=o.red?'1':'0';updLf();
 };
 
 /* ملف المقترض: كل قروض الاسم نفسه + مدى الالتزام بالمواعيد */
@@ -676,7 +685,7 @@ async function makePdf(){
     txt(fit(l.name,38,720,true),38,'#14213d',true);txt(s[0],30,s[1],true,'left',M);y+=62;
     const sub=[l.phone,(l.mode==='inst'?'أقساط':l.mode==='end'?'دفعة واحدة في النهاية':'فائدة فقط والأصل ثابت')+(l.unit==='w'?' أسبوعيا':''),l.cat,l.guar?'الضامن: '+l.guar:''].filter(Boolean).join(' | ');
     txt(fit(sub,24,W-2*M,false),24,'#5d6b82',false);y+=40;
-    const kv=[['مبلغ القرض',money(l.principal)],['الفائدة السنوية',l.rate+'%'],['بداية القرض',l.start],['نهاية القرض',endD(l)],['الأصل المتبقي',money(c.bal)],['الدفعة القادمة',c.done?'-':money(c.ended?c.bal:c.nextI+c.nextP)+' ('+(c.ended?endD(l):c.nextD)+')'],['فوائد محصّلة',money(intPaid(l))],['أصل مسدَّد',money(paidPr(l))]];
+    const kv=[['مبلغ القرض',money(l.principal)],['الفائدة',rateTxt(l)],['بداية القرض',l.start],['نهاية القرض',endD(l)],['الأصل المتبقي',money(c.bal)],['الدفعة القادمة',c.done?'-':money(c.ended?c.bal:c.nextI+c.nextP)+' ('+(c.ended?endD(l):c.nextD)+')'],['فوائد محصّلة',money(intPaid(l))],['أصل مسدَّد',money(paidPr(l))]];
     const cw=(W-2*M)/2;
     for(let i=0;i<kv.length;i+=2){
       need(44);
@@ -826,6 +835,25 @@ document.addEventListener('visibilitychange',()=>{
 });
 updPinUi();
 if(pinRec)showLock('verify');else document.documentElement.classList.remove('locked');
+
+/* ===== نسبة الفائدة: تحديد عدد الأشهر التي تُحتسب لها ===== */
+function rateHint(f,h){
+  const el=$(h),rv=E(f,'rate').value;
+  if(rv===''||!(+rv>=0)){el.textContent='';return}
+  const n=Math.max(1,Math.floor(+E(f,'rp').value)||12),pm=+rv/n,w=E(f,'unit').value==='w';
+  el.textContent=(n===1?'الفائدة الشهرية ':'الفائدة الشهرية = '+fx(+rv)+'% ÷ '+n+' = ')+fx(pm)+'%'+(w?'، أي '+fx(pm*12/52)+'% أسبوعيا':'');
+}
+function markRp(f,c){
+  const v=String(Math.floor(+E(f,'rp').value)||'');
+  document.querySelectorAll(c+' button').forEach(b=>b.classList.toggle('on',b.dataset.r===v));
+}
+function bindRate(fs,cs,hs){
+  const f=$(fs),upd=()=>{rateHint(f,hs);markRp(f,cs)};
+  f.addEventListener('input',upd);f.addEventListener('change',upd);
+  $(cs).onclick=e=>{const b=e.target.closest('button[data-r]');if(!b)return;E(f,'rp').value=b.dataset.r;upd();f.dispatchEvent(new Event('input',{bubbles:true}))};
+  return upd;
+}
+const updLf=bindRate('#lf','#rpq','#rph'),updK=bindRate('#kf','#krpq','#krph');
 
 if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})}
 render();
