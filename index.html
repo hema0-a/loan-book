@@ -6,6 +6,7 @@
 <title>دفتر القروض</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#14213d">
+<script>try{if(localStorage.getItem('loans_pin'))document.documentElement.classList.add('locked')}catch(e){}</script>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="دفتر القروض">
@@ -102,13 +103,23 @@ summary{cursor:pointer;padding:10px 0;color:var(--mu)}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .chips button{font-size:14px;min-height:36px;padding:6px 12px;border-radius:20px}
 .chips button.on{background:var(--ac);color:var(--on);border-color:var(--ac)}
+.locked main,.locked nav{visibility:hidden}
+#lock{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px}
+#lock[hidden]{display:none}
+#lkd{display:flex;gap:16px;margin:6px 0}
+#lkd i{width:16px;height:16px;border-radius:50%;border:2px solid var(--ac)}
+#lkd i.f{background:var(--ac)}
+.kp{display:grid;grid-template-columns:repeat(3,78px);gap:14px;direction:ltr}
+.kp button{height:78px;border-radius:50%;font-size:28px;padding:0}
+.kp span{display:block}
+.bkn{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--wa);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:14px;background:var(--card)}
 #ts{position:fixed;inset-inline:16px;bottom:calc(86px + env(safe-area-inset-bottom,0px));display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--ac);color:var(--on);padding:10px 14px;border-radius:10px;text-align:center;z-index:50}
 </style>
 </head>
 <body>
 <main>
 <h1>دفتر القروض</h1>
-<section id="v-home"><div id="sum"></div><div id="wk"></div></section>
+<section id="v-home"><div id="sum"></div><div id="bkb"></div><div id="wk"></div></section>
 <section id="v-loans" hidden>
 <input id="q" type="search" placeholder="ابحث باسم المقترض أو رقم هاتفه">
 <div class="tabs" id="tabs"><button data-f="all" class="on">الكل</button><button data-f="act">جارية</button><button data-f="late">متأخرة</button><button data-f="done">مسدَّدة</button></div>
@@ -120,8 +131,13 @@ summary{cursor:pointer;padding:10px 0;color:var(--mu)}
 <section id="v-more" hidden>
 <button class="mb" id="kb">🧮 حاسبة قبل الإقراض</button>
 <button class="mb" id="bk">💾 نسخة احتياطية واستعادة</button>
+<button class="mb" id="tb">🗑 سلة المحذوفات</button>
+<button class="mb" id="pk">🔒 تفعيل القفل بالرقم السري</button>
+<div id="pkr" hidden><div class="nt">🔒 القفل بالرقم السري مفعّل</div><div class="more"><button class="s" id="pk2">تغيير الرقم</button><button class="s d" id="pk3">إلغاء القفل</button></div><br></div>
 <div class="mb2"><span>العملة</span><select id="cur"><option value="">بدون</option><option>جنيه</option><option>ريال</option><option>درهم</option><option>دينار</option><option>دولار</option></select></div>
 <p class="nt">بياناتك محفوظة في متصفح هذا الجهاز فقط. خذ نسخة احتياطية من وقت لآخر.</p>
+<p class="nt">القفل بالرقم السري يمنع الاطلاع العرضي ولا يشفّر البيانات.</p>
+<p class="nt">الإصدار 3.0</p>
 </section>
 </main>
 <nav id="nav">
@@ -131,6 +147,13 @@ summary{cursor:pointer;padding:10px 0;color:var(--mu)}
 <button id="rp"><span class="ic">📊</span>التقارير</button>
 <button data-v="more"><span class="ic">☰</span>المزيد</button>
 </nav>
+<div id="lock" hidden>
+<b id="lkt" style="font-size:20px"></b>
+<div id="lkd"></div>
+<div id="lkm" class="nt" style="min-height:24px"></div>
+<div class="kp"><button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><span></span><button data-k="0">0</button><button data-k="b">⌫</button></div>
+<div class="row"><button class="s" id="lkf">نسيت الرقم؟</button><button class="s" id="lkc">إلغاء</button></div>
+</div>
 <div id="ts" hidden></div>
 
 <dialog id="dl"><form id="lf">
@@ -204,6 +227,8 @@ summary{cursor:pointer;padding:10px 0;color:var(--mu)}
 
 <dialog id="dpf"><b id="pft"></b><div id="pfb"></div><div class="row"><button id="pfx">إغلاق</button></div></dialog>
 
+<dialog id="dtr"><b>سلة المحذوفات</b><p class="info">تبقى القروض المحذوفة هنا 30 يوما ثم تُحذف نهائيا.</p><div id="trb"></div><div class="row"><button id="trx">إغلاق</button></div></dialog>
+
 <dialog id="dc">
 <p id="cm"></p>
 <div class="row"><button id="cn">إلغاء</button><button class="p" id="cy">تأكيد</button></div>
@@ -245,6 +270,9 @@ function clean(d){
 }
 let loans=[];
 try{loans=clean(JSON.parse(localStorage.getItem(KEY)||'[]'))||[]}catch(e){loans=[]}
+const keepTrash=t=>Date.now()-new Date(t.d).getTime()<30*864e5;
+let trash=[];
+try{trash=JSON.parse(localStorage.getItem('loans_trash')||'[]').map(x=>({d:String(x.d||today()),l:(clean([x.l])||[null])[0]})).filter(x=>x.l&&keepTrash(x))}catch(e){trash=[]}
 
 const paidPr=l=>l.pays.reduce((a,p)=>a+p.pr,0);
 const intPaid=l=>l.pays.reduce((a,p)=>a+p.int,0);
@@ -343,7 +371,7 @@ function card(o){
   return h+'</div>';
 }
 
-function render(){
+function render(){updBk();
   const all=loans.map(l=>({l:l,c:calc(l)})),act=all.filter(o=>!o.c.done),lateL=act.filter(o=>isLate(o.c));
   const la=lateL.reduce((a,o)=>a+lateAmt(o.c),0);
   $('#sum').innerHTML=
@@ -429,7 +457,7 @@ const onAct=e=>{
   else if(a==='edit')openLoan(l);
   else if(a==='his'){open.has(l.id)?open.delete(l.id):open.add(l.id);render()}
   else if(a==='rm'){const k=+b.dataset.k;ask('حذف هذه الدفعة؟',()=>{l.pays.splice(k,1);save();render()})}
-  else if(a==='del')ask('حذف قرض '+l.name+' وكل دفعاته؟',()=>{loans=loans.filter(x=>x!==l);save();render()});
+  else if(a==='del')ask('نقل قرض '+l.name+' إلى سلة المحذوفات؟ يبقى فيها 30 يوما ويمكن استرجاعه.',()=>{trashLoan(l);render();toast('نُقل إلى السلة',()=>{const i=trash.findIndex(t=>t.l===l);if(i>=0){restoreTrash(i);render()}})});
   else if(a==='tell'){
     const c=calc(l);let t;
     if(c.ended)t='انتهت مدة القرض بتاريخ '+endD(l)+'. المبلغ المتبقي المستحق: '+money(lateAmt(c))+'.';
@@ -468,7 +496,7 @@ $('#cur').onchange=e=>{curr=e.target.value;try{localStorage.setItem(CK,curr)}cat
 
 $('#bk').onclick=()=>{$('#bt').value=JSON.stringify(loans);$('#db').showModal()};
 $('#c3').onclick=()=>$('#db').close();
-$('#cp').onclick=()=>doCopy($('#bt'));
+$('#cp').onclick=()=>{doCopy($('#bt'));markBk()};
 $('#im').onclick=()=>{
   let d=null;
   try{d=clean(JSON.parse($('#bt').value))}catch(e){}
@@ -680,7 +708,7 @@ async function readBackup(file){
   try{return JSON.parse(txt.slice(i,j<0?txt.length:j))}catch(e){return null}
 }
 $('#bp').onclick=async()=>{
-  try{toast('جارٍ تجهيز الملف...');dl(await makePdf(),'loan-book-'+today()+'.pdf');toast('تم تجهيز النسخة، تحقق من التنزيلات')}
+  try{toast('جارٍ تجهيز الملف...');dl(await makePdf(),'loan-book-'+today()+'.pdf');markBk();toast('تم تجهيز النسخة، تحقق من التنزيلات')}
   catch(e){toast('تعذر إنشاء ملف PDF')}
 };
 $('#bf').onchange=async e=>{
@@ -694,6 +722,111 @@ $('#bf').onchange=async e=>{
     save();render();$('#db').close();toast('تمت الاستعادة');
   });
 };
+/* ===== سلة المحذوفات ===== */
+function saveTrash(){try{localStorage.setItem('loans_trash',JSON.stringify(trash))}catch(e){}}
+function trashLoan(l){trash.push({d:today(),l:l});loans=loans.filter(x=>x!==l);save();saveTrash();updTrashBtn()}
+function restoreTrash(i){
+  const t=trash[i];if(!t)return false;
+  trash.splice(i,1);
+  if(loans.some(x=>x.id===t.l.id))t.l.id=Date.now();
+  loans.push(t.l);save();saveTrash();updTrashBtn();return true;
+}
+function updTrashBtn(){$('#tb').textContent='🗑 سلة المحذوفات'+(trash.length?' ('+trash.length+')':'')}
+function renderTrash(){
+  $('#trb').innerHTML=trash.length?trash.map((t,i)=>'<div class="loan wkr"><div><b>'+esc(t.l.name)+'</b><small>حُذف '+esc(t.d)+' | '+money(t.l.principal)+'</small></div><div class="btns"><button class="s p" data-t="res" data-i="'+i+'">استرجاع</button><button class="s d" data-t="del" data-i="'+i+'">حذف نهائي</button></div></div>').join(''):'<div class="empty">السلة فارغة.</div>';
+}
+$('#tb').onclick=()=>{renderTrash();$('#dtr').showModal()};
+$('#trx').onclick=()=>$('#dtr').close();
+$('#trb').onclick=e=>{
+  const b=e.target.closest('button[data-t]');if(!b)return;const i=+b.dataset.i;
+  if(b.dataset.t==='res'){if(restoreTrash(i)){render();renderTrash();toast('تم استرجاع القرض')}}
+  else ask('حذف هذا القرض نهائيا؟ لا يمكن التراجع.',()=>{trash.splice(i,1);saveTrash();updTrashBtn();renderTrash()});
+};
+updTrashBtn();
+
+/* ===== تذكير بالنسخ الاحتياطي ===== */
+function bkMsg(last,now){
+  if(!loans.length)return '';
+  if(!last)return 'لم تأخذ نسخة احتياطية بعد. بياناتك محفوظة في هذا الجهاز فقط.';
+  const d=Math.floor((new Date(now||today())-new Date(last))/864e5);
+  return d>=7?'آخر نسخة احتياطية قبل '+d+' يوما.':'';
+}
+function updBk(){
+  let last=null;try{last=localStorage.getItem('loans_lastbk')}catch(e){}
+  const m=bkMsg(last);
+  $('#bkb').innerHTML=m?'<div class="bkn"><span>'+m+'</span><button class="s p">نسخة الآن</button></div>':'';
+}
+function markBk(){try{localStorage.setItem('loans_lastbk',today())}catch(e){}updBk()}
+$('#bkb').onclick=e=>{if(e.target.closest('button'))$('#bk').click()};
+
+/* ===== القفل بالرقم السري (4 أرقام) ===== */
+const PK='loans_pin';
+let pinRec=null;
+try{pinRec=JSON.parse(localStorage.getItem(PK)||'null')}catch(e){}
+let lk=null,lkFails=0,lkUntil=0,hiddenAt=0;
+async function hashPin(pin,salt){
+  const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(salt+':'+pin));
+  return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function updPinUi(){$('#pk').hidden=!!pinRec;$('#pkr').hidden=!pinRec}
+function lkMsg(m){$('#lkm').textContent=m||''}
+function drawLock(){
+  if(!lk)return;
+  $('#lkt').textContent=lk.mode==='verify'?'أدخل الرقم السري':lk.mode==='new1'?'اختر رقما سريا من 4 أرقام':'أعد إدخال الرقم للتأكيد';
+  $('#lkd').innerHTML=[0,1,2,3].map(i=>'<i class="'+(i<lk.buf.length?'f':'')+'"></i>').join('');
+  $('#lkc').hidden=!lk.cancel;$('#lkf').hidden=lk.mode!=='verify';
+}
+function showLock(mode,cb,cancel){lk={mode:mode,buf:'',first:'',cb:cb||null,cancel:!!cancel,busy:false};lkMsg('');drawLock();$('#lock').hidden=false}
+function hideLock(){$('#lock').hidden=true;document.documentElement.classList.remove('locked');lk=null}
+async function lockKey(k){
+  if(!lk||lk.busy)return;
+  if(k==='b'){lk.buf=lk.buf.slice(0,-1);drawLock();return}
+  if(lk.buf.length>=4)return;
+  if(lk.mode==='verify'&&Date.now()<lkUntil){lkMsg('انتظر '+Math.ceil((lkUntil-Date.now())/1000)+' ثانية');return}
+  lk.buf+=k;drawLock();
+  if(lk.buf.length<4)return;
+  lk.busy=true;const pin=lk.buf;
+  try{
+    if(lk.mode==='verify'){
+      if(pinRec&&await hashPin(pin,pinRec.s)===pinRec.h){const cb=lk.cb;lkFails=0;hideLock();if(cb)cb();return}
+      lkFails++;lk.buf='';
+      if(lkFails>=5){lkFails=0;lkUntil=Date.now()+30000;lkMsg('محاولات كثيرة. انتظر 30 ثانية')}else lkMsg('رقم خاطئ');
+    }else if(lk.mode==='new1'){lk.first=pin;lk.buf='';lk.mode='new2';lkMsg('')}
+    else if(lk.mode==='new2'){
+      if(pin===lk.first){
+        const salt=Array.from(crypto.getRandomValues(new Uint8Array(8))).map(b=>b.toString(16).padStart(2,'0')).join('');
+        pinRec={s:salt,h:await hashPin(pin,salt)};
+        try{localStorage.setItem(PK,JSON.stringify(pinRec))}catch(e){toast('تعذر حفظ القفل')}
+        hideLock();updPinUi();toast('تم تفعيل القفل');return;
+      }
+      lk.mode='new1';lk.first='';lk.buf='';lkMsg('الرقمان غير متطابقين، ابدأ من جديد');
+    }
+  }catch(e){if(lk){lk.buf='';lkMsg('تعذر التحقق في هذا المتصفح')}}
+  finally{if(lk){lk.busy=false;drawLock()}}
+}
+$('#lock').onclick=e=>{const b=e.target.closest('button[data-k]');if(b)lockKey(b.dataset.k)};
+$('#lkc').onclick=()=>hideLock();
+$('#lkf').onclick=()=>ask('نسيان الرقم يعني مسح كل بيانات التطبيق من هذا الجهاز وإلغاء القفل، ثم تستعيدها من نسخة PDF احتياطية. متابعة؟',()=>{
+  ['loans_v1','loans_trash','loans_pin','loans_lastbk'].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});location.reload();
+});
+$('#pk').onclick=()=>{
+  if(typeof crypto==='undefined'||!crypto.subtle){toast('القفل يحتاج فتح التطبيق عبر رابط آمن (https)');return}
+  showLock('new1',null,true);
+};
+$('#pk2').onclick=()=>showLock('verify',()=>showLock('new1',null,true),true);
+$('#pk3').onclick=()=>showLock('verify',()=>{pinRec=null;try{localStorage.removeItem(PK)}catch(e){}updPinUi();toast('تم إلغاء القفل')},true);
+document.addEventListener('keydown',e=>{
+  if(!lk)return;
+  if(e.key.length===1&&e.key>='0'&&e.key<='9')lockKey(e.key);
+  else if(e.key==='Backspace')lockKey('b');
+});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){hiddenAt=Date.now();return}
+  if(pinRec&&!lk&&hiddenAt&&Date.now()-hiddenAt>60000)showLock('verify');
+});
+updPinUi();
+if(pinRec)showLock('verify');else document.documentElement.classList.remove('locked');
+
 if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})}
 render();
 </script>
