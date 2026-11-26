@@ -83,7 +83,7 @@ summary{cursor:pointer;padding:10px 0;color:var(--mu)}
 #nav button.on{color:var(--tx);font-weight:700}
 #nav .ic{font-size:21px;line-height:1}
 #nav #add{background:var(--ac);color:var(--on);border-radius:50%;flex:none;width:56px;height:56px;margin-top:-24px;font-size:30px;justify-content:center;padding:0;box-shadow:0 3px 8px rgba(0,0,0,.3)}
-@media (max-width:600px){dialog{margin:auto 0 0;width:100%;max-width:none;border-radius:16px 16px 0 0;max-height:92vh;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}}
+@media (max-width:600px){dialog{margin:auto 0 0;width:100%;max-width:none;border-radius:16px 16px 0 0;max-height:92vh;max-height:92dvh;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}}
 .loan{border-inline-start:6px solid var(--bd)}
 .loan.s-ok{border-inline-start-color:var(--ok)}
 .loan.s-soon{border-inline-start-color:var(--wa)}
@@ -113,6 +113,7 @@ summary{cursor:pointer;padding:10px 0;color:var(--mu)}
 .kp button{height:78px;border-radius:50%;font-size:28px;padding:0}
 .kp span{display:block}
 .bkn{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--wa);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:14px;background:var(--card)}
+input[data-num]{direction:ltr;text-align:right}
 #ts{position:fixed;inset-inline:16px;bottom:calc(86px + env(safe-area-inset-bottom,0px));display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--ac);color:var(--on);padding:10px 14px;border-radius:10px;text-align:center;z-index:50}
 </style>
 </head>
@@ -137,7 +138,7 @@ summary{cursor:pointer;padding:10px 0;color:var(--mu)}
 <div class="mb2"><span>العملة</span><select id="cur"><option value="">بدون</option><option>جنيه</option><option>ريال</option><option>درهم</option><option>دينار</option><option>دولار</option></select></div>
 <p class="nt">بياناتك محفوظة في متصفح هذا الجهاز فقط. خذ نسخة احتياطية من وقت لآخر.</p>
 <p class="nt">القفل بالرقم السري يمنع الاطلاع العرضي ولا يشفّر البيانات.</p>
-<p class="nt">الإصدار 3.1</p>
+<p class="nt">الإصدار 3.2</p>
 </section>
 </main>
 <nav id="nav">
@@ -159,15 +160,15 @@ summary{cursor:pointer;padding:10px 0;color:var(--mu)}
 <dialog id="dl"><form id="lf">
 <b id="lt">قرض جديد</b>
 <label>اسم المقترض</label><input name="name" required>
-<label>مبلغ القرض</label><input name="principal" type="number" step="any" min="0.01" required>
-<label>نسبة الفائدة %</label><input name="rate" type="number" step="any" min="0" required>
-<label>تُحتسب هذه النسبة لكل كم شهرا؟</label><input name="rp" type="number" step="1" min="1" max="120" value="12" required>
+<label>مبلغ القرض</label><input name="principal" type="text" inputmode="decimal" data-num autocomplete="off" required>
+<label>نسبة الفائدة %</label><input name="rate" type="text" inputmode="decimal" data-num autocomplete="off" required>
+<label>تُحتسب هذه النسبة لكل كم شهرا؟</label><input name="rp" type="text" inputmode="numeric" data-num autocomplete="off" required value="12">
 <div class="chips" id="rpq"><button type="button" data-r="1">شهرية</button><button type="button" data-r="3">كل 3 أشهر</button><button type="button" data-r="6">كل 6 أشهر</button><button type="button" data-r="12">سنوية</button></div>
 <div class="nt" id="rph"></div>
 <label>نوع السداد</label>
 <select name="mode"><option value="int">فائدة فقط والأصل ثابت</option><option value="inst">أقساط من الأصل مع الفائدة</option><option value="end">دفعة واحدة في النهاية (الأصل وكل الفوائد)</option></select>
 <label>وحدة الدفعات</label><select name="unit"><option value="m">شهرية</option><option value="w">أسبوعية</option></select>
-<label id="ml">مدة القرض بالأشهر</label><input name="months" type="number" step="1" min="1" required>
+<label id="ml">مدة القرض بالأشهر</label><input name="months" type="text" inputmode="numeric" data-num autocomplete="off" required>
 <label>تاريخ بداية القرض</label><input name="start" type="date" required>
 <label>رقم الهاتف</label><input name="phone" type="tel">
 <details id="adv"><summary>خيارات متقدمة</summary>
@@ -185,8 +186,8 @@ summary{cursor:pointer;padding:10px 0;color:var(--mu)}
 <div class="info" id="pi"></div>
 <label>تاريخ الدفعة</label><input name="d" type="date" required>
 <div class="chips" id="dq"><button type="button" data-d="0">اليوم</button><button type="button" data-d="1">أمس</button><button type="button" data-d="2">قبل يومين</button><button type="button" data-d="due">يوم الاستحقاق</button></div>
-<label>الفائدة المدفوعة</label><input name="int" type="number" step="any" min="0" required>
-<label>الأصل المدفوع</label><input name="pr" type="number" step="any" min="0" required>
+<label>الفائدة المدفوعة</label><input name="int" type="text" inputmode="decimal" data-num autocomplete="off" required>
+<label>الأصل المدفوع</label><input name="pr" type="text" inputmode="decimal" data-num autocomplete="off" required>
 <label>ملاحظة على الدفعة</label><input name="n">
 <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="x" style="width:auto"> دفعة أصل إضافية، لا تُحسب شهرا</label>
 <div class="row"><button type="button" id="full">سداد الأصل كاملا</button></div>
@@ -217,13 +218,13 @@ summary{cursor:pointer;padding:10px 0;color:var(--mu)}
 
 <dialog id="dk"><form id="kf">
 <b>حاسبة قبل الإقراض</b>
-<label>مبلغ القرض</label><input name="principal" type="number" step="any" min="0.01">
-<label>نسبة الفائدة %</label><input name="rate" type="number" step="any" min="0">
-<label>تُحتسب هذه النسبة لكل كم شهرا؟</label><input name="rp" type="number" step="1" min="1" max="120" value="12">
+<label>مبلغ القرض</label><input name="principal" type="text" inputmode="decimal" data-num autocomplete="off">
+<label>نسبة الفائدة %</label><input name="rate" type="text" inputmode="decimal" data-num autocomplete="off">
+<label>تُحتسب هذه النسبة لكل كم شهرا؟</label><input name="rp" type="text" inputmode="numeric" data-num autocomplete="off" value="12">
 <div class="chips" id="krpq"><button type="button" data-r="1">شهرية</button><button type="button" data-r="3">كل 3 أشهر</button><button type="button" data-r="6">كل 6 أشهر</button><button type="button" data-r="12">سنوية</button></div>
 <div class="nt" id="krph"></div>
 <label>وحدة الدفعات</label><select name="unit"><option value="m">شهرية</option><option value="w">أسبوعية</option></select>
-<label id="kml">مدة القرض بالأشهر</label><input name="months" type="number" step="1" min="1" max="600">
+<label id="kml">مدة القرض بالأشهر</label><input name="months" type="text" inputmode="numeric" data-num autocomplete="off">
 <label>نوع السداد</label><select name="mode"><option value="int">فائدة فقط والأصل ثابت</option><option value="inst">أقساط من الأصل مع الفائدة</option><option value="end">دفعة واحدة في النهاية</option></select>
 <label id="ksl">عدد الأشهر بين كل دفعتين</label><select name="step"><option value="1">كل شهر</option></select>
 <label>حساب الفائدة</label><select name="red"><option value="0">ثابتة على مبلغ القرض الأصلي</option><option value="1">على الأصل المتبقي</option></select>
@@ -250,6 +251,16 @@ const today=()=>iso(new Date());
 const fmt=n=>Number(n||0).toLocaleString('en-US',{maximumFractionDigits:2});
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const r2=n=>+Number(n).toFixed(2);
+/* الأرقام: تقبل الأرقام العربية (٠١٢) والفارسية والفاصلة العربية ٫ ، وتتجاهل الفواصل الأخرى */
+const AD={'٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9','۰':'0','۱':'1','۲':'2','۳':'3','۴':'4','۵':'5','۶':'6','۷':'7','۸':'8','۹':'9'};
+const cleanTyped=v=>String(v==null?'':v).replace(/[٠-٩۰-۹]/g,c=>AD[c]).replace(/٫/g,'.').replace(/،/g,',').replace(/[٬\s]/g,'').replace(/[^0-9.,]/g,'');
+function normNum(v){
+  let t=cleanTyped(v);
+  if(t.indexOf('.')<0&&/^[^,]*,[0-9]{1,2}$/.test(t))t=t.replace(',','.');else t=t.replace(/,/g,'');
+  const i=t.indexOf('.');if(i>=0)t=t.slice(0,i+1)+t.slice(i+1).replace(/\./g,'');
+  return t;
+}
+const nv=(f,n)=>{const t=normNum(E(f,n).value);return t===''?0:+t};
 let curr='';
 try{curr=localStorage.getItem(CK)||''}catch(e){}
 const money=n=>fmt(n)+(curr?' '+curr:'');
@@ -425,7 +436,7 @@ $('#add').onclick=()=>openLoan(null);
 $('#c1').onclick=()=>$('#dl').close();
 $('#lf').onsubmit=e=>{
   e.preventDefault();const f=e.target;
-  const o={name:E(f,'name').value.trim(),phone:E(f,'phone').value.trim(),note:E(f,'note').value.trim(),principal:+E(f,'principal').value,rate:+E(f,'rate').value,rp:Math.min(120,Math.max(1,Math.floor(+E(f,'rp').value)||12)),start:E(f,'start').value,mode:E(f,'mode').value,months:Math.floor(+E(f,'months').value),unit:E(f,'unit').value,step:+E(f,'step').value||1,red:E(f,'red').value==='1',guar:E(f,'guar').value.trim(),cat:E(f,'cat').value};
+  const o={name:E(f,'name').value.trim(),phone:E(f,'phone').value.trim(),note:E(f,'note').value.trim(),principal:nv(f,'principal'),rate:nv(f,'rate'),rp:Math.min(120,Math.max(1,Math.floor(nv(f,'rp'))||12)),start:E(f,'start').value,mode:E(f,'mode').value,months:Math.floor(nv(f,'months')),unit:E(f,'unit').value,step:+E(f,'step').value||1,red:E(f,'red').value==='1',guar:E(f,'guar').value.trim(),cat:E(f,'cat').value};
   if(o.mode==='end')o.step=Math.max(1,o.months);
   if(!o.name||!(o.principal>0)||!(o.rate>=0)||!(o.months>=1)||!o.start){toast('راجع الحقول: المبلغ والمدة يجب أن يكونا أكبر من صفر');return}
   if(editId!==null){
@@ -448,7 +459,7 @@ $('#full').onclick=()=>{if(cur)E($('#pf'),'pr').value=r2(rem(cur))};
 $('#c2').onclick=()=>$('#dp').close();
 $('#pf').onsubmit=e=>{
   e.preventDefault();const f=e.target;if(!cur)return;
-  const i=+E(f,'int').value,p=+E(f,'pr').value;
+  const i=nv(f,'int'),p=nv(f,'pr');
   if(!(i>=0)||!(p>=0)||(i+p)<=0||!E(f,'d').value){toast('أدخل مبلغا أكبر من صفر وتاريخا صحيحا');return}
   const pr=Math.min(p,rem(cur));
   cur.pays.push({d:E(f,'d').value,int:r2(i),pr:r2(pr),x:E(f,'x').checked,n:E(f,'n').value.trim()});
@@ -575,7 +586,7 @@ $('#nav').onclick=e=>{const b=e.target.closest('button[data-v]');if(b)setView(b.
 
 /* حاسبة قبل الإقراض: تستخدم نفس محرك الحساب بدون حفظ */
 function runK(){
-  const f=$('#kf'),o={id:0,principal:+E(f,'principal').value,rate:+E(f,'rate').value,rp:Math.min(120,Math.max(1,Math.floor(+E(f,'rp').value)||12)),months:Math.floor(+E(f,'months').value),unit:E(f,'unit').value,mode:E(f,'mode').value,step:+E(f,'step').value||1,red:E(f,'red').value==='1',start:today(),pays:[]};
+  const f=$('#kf'),o={id:0,principal:nv(f,'principal'),rate:nv(f,'rate'),rp:Math.min(120,Math.max(1,Math.floor(nv(f,'rp'))||12)),months:Math.floor(nv(f,'months')),unit:E(f,'unit').value,mode:E(f,'mode').value,step:+E(f,'step').value||1,red:E(f,'red').value==='1',start:today(),pays:[]};
   if(o.mode==='end')o.step=Math.max(1,o.months);
   if(!(o.principal>0)||!(o.rate>=0)||!(o.months>=1)||o.months>600){$('#kr').innerHTML='<div class="info">أدخل المبلغ والفائدة والمدة (حتى 600).</div>';return null}
   const c=calc(o),ti=c.proj.reduce((a,r)=>a+r.si,0);
@@ -838,13 +849,13 @@ if(pinRec)showLock('verify');else document.documentElement.classList.remove('loc
 
 /* ===== نسبة الفائدة: تحديد عدد الأشهر التي تُحتسب لها ===== */
 function rateHint(f,h){
-  const el=$(h),rv=E(f,'rate').value;
+  const el=$(h),rv=normNum(E(f,'rate').value);
   if(rv===''||!(+rv>=0)){el.textContent='';return}
-  const n=Math.max(1,Math.floor(+E(f,'rp').value)||12),pm=+rv/n,w=E(f,'unit').value==='w';
+  const n=Math.max(1,Math.floor(nv(f,'rp'))||12),pm=+rv/n,w=E(f,'unit').value==='w';
   el.textContent=(n===1?'الفائدة الشهرية ':'الفائدة الشهرية = '+fx(+rv)+'% ÷ '+n+' = ')+fx(pm)+'%'+(w?'، أي '+fx(pm*12/52)+'% أسبوعيا':'');
 }
 function markRp(f,c){
-  const v=String(Math.floor(+E(f,'rp').value)||'');
+  const v=String(Math.floor(nv(f,'rp'))||'');
   document.querySelectorAll(c+' button').forEach(b=>b.classList.toggle('on',b.dataset.r===v));
 }
 function bindRate(fs,cs,hs){
@@ -854,6 +865,11 @@ function bindRate(fs,cs,hs){
   return upd;
 }
 const updLf=bindRate('#lf','#rpq','#rph'),updK=bindRate('#kf','#krpq','#krph');
+
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t&&t.hasAttribute&&t.hasAttribute('data-num')){const c=cleanTyped(t.value);if(c!==t.value)t.value=c}
+},true);
 
 if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})}
 render();
